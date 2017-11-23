@@ -1,0 +1,4 @@
+﻿add-migration -ConfigurationTypeName EFConsoleApp.Migrations.Configuration
+update-database -ConfigurationTypeName EFConsoleApp.Migrations.Configuration
+
+update-database -ConfigurationTypeName EFConsoleApp.Migrations.Configuration -TargetMigration:0
