@@ -10,6 +10,7 @@ using System.Data.Entity.Migrations;
 using System.Reflection;
 using System.IO;
 using CsvHelper;
+using EFConsoleApp.ClubModel;
 
 namespace EFConsoleApp
 {
@@ -24,6 +25,7 @@ namespace EFConsoleApp
             {
                 SeedClub(context);
                 SeedStudents(context);
+                SeedCourses(context);
             }
         }
 
@@ -31,7 +33,7 @@ namespace EFConsoleApp
         private static void SeedClub(ClubContext context)
         {
             #region club 1
-            context.Clubs.AddOrUpdate(c => new { c.ClubName, c.clubMembers },
+            context.Clubs.AddOrUpdate(c => c.ClubName,
 
             new Club
             {
@@ -58,7 +60,7 @@ namespace EFConsoleApp
             });
             #endregion
             #region club 2
-            context.Clubs.AddOrUpdate(c => new { c.ClubName, c.clubMembers },
+            context.Clubs.AddOrUpdate(c => c.ClubName,
             new Club
             {
                 ClubName = "The Chess Club",
@@ -82,7 +84,7 @@ namespace EFConsoleApp
             context.SaveChanges();
         }
 
-        public static void SeedStudents(ClubContext context)
+        public static void SeedStudents(ClubContext context)//copy this for courses
         {
             Assembly assembly = Assembly.GetExecutingAssembly();
             string resourceName = "EFConsoleApp.Migrations.TestStudents.csv";
@@ -98,7 +100,34 @@ namespace EFConsoleApp
             }
             context.SaveChanges();
         }
+        
+        public static void SeedCourses(ClubContext context)
+        {
+            Assembly assembly = Assembly.GetExecutingAssembly();
+            string resourceName = "EFConsole.Migrations.Courses.csv";
+            using(Stream stream = assembly.GetManifestResourceStream(resourceName))
+            {
+                using (StreamReader reader = new StreamReader(stream, Encoding.UTF8))
+                {
+                    CsvReader csvReader = new CsvReader(reader);
+                    csvReader.Configuration.HasHeaderRecord = false;
+                    //var courses = csvReader.GetRecords<Course>().ToArray();
+                    //context.Courses.AddOrUpdate(c => new { c.CourseCode, c.CourseName }, courses);
+                    var courseData = csvReader.GetRecords<CourseDataImport>().ToArray();
+                    foreach(var dataItem in courseData)
+                    {
+                        context.Courses.AddOrUpdate(c =>
+                            new {c.CourseCode, c.CourseName },
+                            new Course { CourseCode = dataItem.CourseCode,
+                            CourseName = dataItem.CourseName,
+                            Year = dataItem.Year });
+                    }
+                }
 
+            }
+            context.SaveChanges();
+        }
+        
         public static List<Member> getMembers(ClubContext context )
         {
             return GetStudents(context).Select(s => new Member { StudentID = s.StudentID }).ToList();
